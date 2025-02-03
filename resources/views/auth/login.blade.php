@@ -10,36 +10,34 @@
     <div class="container mt-5">
         <h2 class="text-center">Iniciar Sesión</h2>
 
-        @if($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         <form action="{{ route('login.post') }}" method="POST">
             @csrf
+
+            <!-- Correo -->
             <div class="mb-3">
-                <label for="email" class="form-label">Correo Electrónico</label>
-                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required>
+                <label for="email" class="form-label">Correo</label>
+                <input type="email" name="email" id="email" class="form-control" required>
                 @error('email')
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <small class="text-danger">{{ $message }}</small>
                 @enderror
             </div>
+
+            <!-- Contraseña -->
             <div class="mb-3">
                 <label for="password" class="form-label">Contraseña</label>
-                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
+                <input type="password" name="password" id="password" class="form-control" required>
                 @error('password')
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <small class="text-danger">{{ $message }}</small>
                 @enderror
             </div>
 
-            <button type="submit" class="btn btn-primary">Ingresar</button>
-        </form>
+            <!-- Mensaje de error general -->
+            @if($errors->has('login_error'))
+                <div class="alert alert-danger">{{ $errors->first('login_error') }}</div>
+            @endif
 
+            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </form>
     </div>
 </body>
 </html>

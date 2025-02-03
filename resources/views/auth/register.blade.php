@@ -9,37 +9,49 @@
 <body>
     <div class="container mt-5">
         <h2 class="text-center">Registro</h2>
+
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
+
         <form action="{{ route('register') }}" method="POST">
             @csrf
+
+            <!-- Nombre -->
             <div class="mb-3">
                 <label for="name" class="form-label">Nombre</label>
-                <input type="text" name="name" class="form-control" required>
+                <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}" required>
+                @error('name')
+                    <small class="text-danger">{{ $message }}</small>
+                @enderror
             </div>
+
+            <!-- Correo -->
             <div class="mb-3">
-                <label for="email" class="form-label">Correo Electrónico</label>
-                <input type="email" name="email" class="form-control" required>
+                <label for="email" class="form-label">Correo</label>
+                <input type="email" name="email" id="email" class="form-control" value="{{ old('email') }}" required>
+                @error('email')
+                    <small class="text-danger">{{ $message }}</small>
+                @enderror
             </div>
+
+            <!-- Contraseña -->
             <div class="mb-3">
                 <label for="password" class="form-label">Contraseña</label>
-                <input type="password" name="password" class="form-control" required>
+                <input type="password" name="password" id="password" class="form-control" required>
+                @error('password')
+                    <small class="text-danger">{{ $message }}</small>
+                @enderror
             </div>
+
+            <!-- Confirmar Contraseña -->
             <div class="mb-3">
                 <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
-                <input type="password" name="password_confirmation" class="form-control" required>
+                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required>
             </div>
 
-            <!-- reCAPTCHA -->
-            <div class="mb-3">
-                <div class="g-recaptcha" data-sitekey="6LcPRsYqAAAAAClxI_yBPUrDO1-JzILxrR8eGevN"></div>
-            </div>
-
-
-            <button type="submit" class="btn btn-primary">Registrarse</button>
+            <button type="submit" class="btn btn-primary w-100">Registrarse</button>
         </form>
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     </div>
 </body>
 </html>

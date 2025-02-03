@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use App\Mail\TwoFactorCodeMail;
+use Illuminate\Validation\Rule;
+
 
 class AuthController extends Controller
 {
@@ -20,9 +22,48 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'name' => [
+                'required',
+                'string',
+                'min:3',
+                'max:50',
+                'regex:/^[\pL\s]+$/u' // Solo letras y espacios
+            ],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')
+            ],
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed', // Debe coincidir con password_confirmation
+                'regex:/[A-Z]/', // Al menos 1 mayúscula
+                'regex:/[a-z]/', // Al menos 1 minúscula
+                'regex:/[0-9]/', // Al menos 1 número
+                'regex:/[\W]/' // Al menos 1 carácter especial
+            ],
+        ], [
+            'name.required' => 'El nombre es obligatorio.',
+            'name.string' => 'El nombre debe contener solo letras.',
+            'name.min' => 'El nombre debe tener al menos 3 caracteres.',
+            'name.max' => 'El nombre no puede tener más de 50 caracteres.',
+            'name.regex' => 'El nombre solo puede contener letras y espacios.',
+
+            'email.required' => 'El correo es obligatorio.',
+            'email.string' => 'El correo debe ser un texto válido.',
+            'email.email' => 'El correo debe tener un formato válido.',
+            'email.max' => 'El correo no puede tener más de 255 caracteres.',
+            'email.unique' => 'Este correo ya está registrado.',
+
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.string' => 'La contraseña debe ser una cadena de texto.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'password.regex' => 'La contraseña debe incluir al menos: 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial.',
         ]);
 
         User::create([
@@ -41,28 +82,24 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
+        // Validaciones mínimas: solo requeridos
+        $request->validate([
+            'email' => 'required',
+            'password' => 'required',
+        ], [
+            'email.required' => 'El correo es obligatorio.',
+            'password.required' => 'La contraseña es obligatoria.',
         ]);
 
+        // Intento de autenticación
+        $credentials = $request->only('email', 'password');
+
         if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-
-            // Generar un código 2FA y guardarlo en la base de datos encriptado
-            $plainCode = rand(100000, 999999);
-            $user->two_factor_code = Hash::make($plainCode);
-            $user->two_factor_expires_at = Carbon::now()->addMinute(); // Expira en 1 minuto
-            $user->save();
-
-            // Enviar el código por correo
-            Mail::to($user->email)->send(new TwoFactorCodeMail($plainCode));
-
-            // Redirigir a la pantalla de verificación
-            return redirect()->route('verify.2fa')->with('wait_time', 60);
+            return redirect()->route('home');
         }
 
-        return back()->withErrors(['email' => 'Las credenciales no son correctas.']);
+        // Mensaje genérico de error
+        return back()->withErrors(['login_error' => 'Las credenciales no coinciden.']);
     }
 
     public function show2FAVerificationForm()
